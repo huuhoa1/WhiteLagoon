@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 using WhiteLagoon.Application.Common.Interfaces;
-using WhiteLagoon.Web.Models;
 using WhiteLagoon.Web.ViewModels;
 
 namespace WhiteLagoon.Web.Controllers
@@ -24,6 +22,35 @@ namespace WhiteLagoon.Web.Controllers
                 CheckInDate = DateOnly.FromDateTime(DateTime.Now),
             };
             return View(homeVM);
+        }
+
+        [HttpPost]
+        public IActionResult Index(HomeVM homeVM)
+        {
+            homeVM.VillaList = _unitOfWork.Villa.GetAll(includeProperties: "VillaAmenity");
+
+            return View(homeVM);
+        }
+
+        public IActionResult GetVillasByDate(int nights, DateOnly checkInDate)
+        {
+            Thread.Sleep(2000);
+            var villaList = _unitOfWork.Villa.GetAll(includeProperties: "VillaAmenity").ToList();
+            foreach (var villa in villaList)
+            {
+                if (villa.Id % 2 == 0)
+                {
+                    villa.IsAvailable = false;
+                }
+            }
+            HomeVM homeVM = new()
+            {
+                CheckInDate = checkInDate,
+                VillaList = villaList,
+                Nights = nights
+            };
+
+            return PartialView("_VillaList", homeVM);
         }
 
         public IActionResult Privacy()
